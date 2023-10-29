@@ -1,0 +1,23 @@
+languages:
+  - name: go
+    title: Go
+  - name: typescript
+    title: TypeScript
+  - name: csharp
+    title: C#
+  - name: java
+    title: Java
+  - name: python
+    title: Python
+  - name: php
+    title: PHP
+examples:
+  go:
+    - name: apigw
+      title: API Gateway
+      description: |
+          This example shows how to use the API Gateway to expose a function to the internet.
+      deploy:
+        - terraform
+
+
