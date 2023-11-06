@@ -1,23 +1,49 @@
 languages:
   - name: go
     title: Go
-  - name: typescript
-    title: TypeScript
-  - name: csharp
-    title: C#
-  - name: java
-    title: Java
-  - name: python
-    title: Python
-  - name: php
-    title: PHP
+#  - name: typescript
+#    title: TypeScript
+#  - name: csharp
+#    title: C#
+#  - name: java
+#    title: Java
+#  - name: python
+#    title: Python
+#  - name: php
+#    title: PHP
 examples:
   go:
+    - name: hello
+      title: Hello World
+      description: |
+          This example shows how to create a simple function that returns a string.
+      deploy:
+        - type: terraform
+          path: tf
+        - type: none
+    - name: raw-function-requests
+      title: Raw Function Requests
+      description: |
+          This example shows how to create a function that handles raw requests.
+      deploy:
+        - type: terraform
+          path: tf
+        - type: none
     - name: apigw
       title: API Gateway
       description: |
           This example shows how to use the API Gateway to expose a function to the internet.
       deploy:
-        - terraform
+        - type: terraform
+          path: tf
+        - type: none
+    - name: ymq
+      title: YMQ
+      description: |
+          This example shows how to use YMQ to send and receive messages.
+      deploy:
+        - type: terraform
+          path: tf
+        - type: none
 
 
