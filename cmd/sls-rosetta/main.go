@@ -1,18 +1,13 @@
 package main
 
 import (
-	"fmt"
-	"os"
+	"log"
 
-	"github.com/nikolaymatrosov/sls-rosetta/internal/ui"
-
-	tea "github.com/charmbracelet/bubbletea"
+	"github.com/nikolaymatrosov/sls-rosetta/internal/cli"
 )
 
 func main() {
-	m := ui.NewViewModel()
-	if _, err := tea.NewProgram(m).Run(); err != nil {
-		fmt.Println("Error running program:", err)
-		os.Exit(1)
+	if err := cli.Execute(); err != nil {
+		log.Fatal(err)
 	}
 }

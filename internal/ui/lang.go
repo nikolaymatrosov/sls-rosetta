@@ -1,10 +1,17 @@
 package ui
 
-import "github.com/charmbracelet/bubbles/list"
+import (
+	"github.com/charmbracelet/bubbles/list"
+	"github.com/nikolaymatrosov/sls-rosetta/internal/examples"
+)
 
 type langItem struct {
 	title string
 	value string
+}
+
+func (i langItem) Description() string {
+	return ""
 }
 
 func (i langItem) Title() string {
@@ -19,38 +26,20 @@ func (i langItem) String() string { return i.title }
 
 func (i langItem) FilterValue() string { return i.title }
 
-func NewLangList() list.Model {
-	languages := []list.Item{
-		langItem{
-			title: "TypeScript",
-			value: "typescript",
-		},
-		langItem{
-			title: "Go",
-			value: "go",
-		},
-		langItem{
-			title: "C#",
-			value: "csharp",
-		},
-		langItem{
-			title: "Java",
-			value: "java",
-		},
-		langItem{
-			title: "Python",
-			value: "python",
-		},
-		langItem{
-			title: "PHP",
-			value: "php",
-		},
+func NewLangList(languages []examples.Language) list.Model {
+	var langItems []list.Item
+	for _, lang := range languages {
+		langItems = append(langItems, langItem{
+			title: lang.Title,
+			value: lang.Name,
+		})
 	}
+	dd := list.NewDefaultDelegate()
+	dd.ShowDescription = false
 
-	l := list.New(languages, simpleItemDelegate{}, defaultWidth, listHeight)
+	l := list.New(langItems, dd, 0, 0)
 	l.Title = "Select function language"
 	l.SetShowStatusBar(false)
-	l.SetFilteringEnabled(false)
 	l.Styles.Title = titleStyle
 	l.Styles.PaginationStyle = paginationStyle
 	l.Styles.HelpStyle = helpStyle

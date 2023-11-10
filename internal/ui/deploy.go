@@ -2,12 +2,14 @@ package ui
 
 import (
 	"github.com/charmbracelet/bubbles/list"
+	"github.com/nikolaymatrosov/sls-rosetta/internal/examples"
 )
 
 type deployItem struct {
 	title       string
 	description string
 	value       string
+	exclusive   []string
 }
 
 func (i deployItem) Title() string {
@@ -26,26 +28,49 @@ func (i deployItem) String() string { return i.title }
 
 func (i deployItem) FilterValue() string { return i.title }
 
-func NewDeployList(item langItem, ex exampleItem) list.Model {
-	deployOptions := []list.Item{
-		deployItem{
+func constructDeployItem(value examples.Deploy) *deployItem {
+	switch value.Type {
+	case "terraform":
+		return &deployItem{
 			title:       "Terraform",
 			description: "Add terraform to your project",
 			value:       "terraform",
-		},
-		deployItem{
+			exclusive:   value.Exclusive,
+		}
+	case "yccli":
+		return &deployItem{
 			title:       "YC CLI",
 			description: "Add Makefile with YC CLI commands",
 			value:       "yccli",
-		},
-		deployItem{
+			exclusive:   value.Exclusive,
+		}
+	case "none":
+		return &deployItem{
 			title:       "None",
 			description: "Do not add anything",
 			value:       "none",
-		},
+			exclusive:   []string{},
+		}
+	default:
+		return nil
+	}
+}
+
+func NewDeployList(deployOptions []examples.Deploy) list.Model {
+	var deployItems []list.Item
+	for _, deployOption := range deployOptions {
+		di := constructDeployItem(deployOption)
+		if di == nil {
+			continue
+		}
+		deployItems = append(deployItems, *di)
 	}
 
-	l := list.New(deployOptions, descriptedItemDelegate{}, defaultWidth, listHeight)
+	dd := list.NewDefaultDelegate()
+
+	dd.ShowDescription = false
+
+	l := list.New(deployItems, dd, 0, 0)
 	l.Title = "Select way to deploy your function"
 	l.SetShowStatusBar(false)
 	l.SetFilteringEnabled(false)

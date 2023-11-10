@@ -1,3 +1,4 @@
+repo: nikolaymatrosov/sls-rosetta
 languages:
   - name: go
     title: Go
@@ -16,34 +17,38 @@ examples:
     - name: hello
       title: Hello World
       description: |
-          This example shows how to create a simple function that returns a string.
+        This example shows how to create a simple function that returns a string.
       deploy:
         - type: terraform
-          path: tf
+          exclusive:
+            - tf
         - type: none
     - name: raw-function-requests
       title: Raw Function Requests
       description: |
-          This example shows how to create a function that handles raw requests.
+        This example shows how to create a function that handles raw requests.
       deploy:
         - type: terraform
-          path: tf
+          exclusive:
+            - tf
         - type: none
     - name: apigw
       title: API Gateway
       description: |
-          This example shows how to use the API Gateway to expose a function to the internet.
+        This example shows how to use the API Gateway to expose a function to the internet.
       deploy:
         - type: terraform
-          path: tf
+          exclusive:
+            - tf
         - type: none
     - name: ymq
       title: YMQ
       description: |
-          This example shows how to use YMQ to send and receive messages.
+        This example shows how to use YMQ to send and receive messages.
       deploy:
         - type: terraform
-          path: tf
+          exclusive:
+            - tf
         - type: none
 
 

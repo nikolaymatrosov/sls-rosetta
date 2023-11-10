@@ -2,16 +2,20 @@ package ui
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/nikolaymatrosov/sls-rosetta/internal/cloner"
+	"github.com/nikolaymatrosov/sls-rosetta/internal/examples"
 )
 
-const listHeight = 14
+// const listHeight = 14
 const defaultWidth = 50
 const purpleColor = "#874bfc"
+const redColor = "#ff5555"
 
 var (
 	titleStyle          = lipgloss.NewStyle().MarginLeft(2)
@@ -20,9 +24,10 @@ var (
 	descriptionStyle    = lipgloss.NewStyle().PaddingLeft(4).Foreground(lipgloss.Color("241"))
 	paginationStyle     = list.DefaultStyles().PaginationStyle.PaddingLeft(4)
 	helpStyle           = list.DefaultStyles().HelpStyle.PaddingLeft(4).PaddingBottom(1)
-	quitTextStyle       = lipgloss.NewStyle().Margin(1, 0, 2, 4)
 	selectedOptionStyle = lipgloss.NewStyle().
 				Foreground(lipgloss.Color(purpleColor))
+	errorStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color(redColor))
 
 	checkMark = selectedOptionStyle.Render("✓")
 )
@@ -30,22 +35,24 @@ var (
 type uiState uint
 
 const (
-	languageView uiState = iota
-	exampleView
+	languageListView uiState = iota
+	exampleListView
+	deployListView
 	pathView
-	deployView
 	resultView
 )
 
 type model struct {
-	languages list.Model
-	language  langItem
+	config     *examples.Config
+	activeList list.Model
+	width      int
+	height     int
 
-	examples list.Model
-	example  exampleItem
+	language   langItem
+	example    exampleItem
+	deployType deployItem
 
-	deploySelector list.Model
-	deployType     deployItem
+	globesToExclude []string
 
 	pathInput TextInputView
 	clonePath string
@@ -56,29 +63,67 @@ type model struct {
 }
 
 func (m *model) selectLanguage() {
-	m.language = m.languages.SelectedItem().(langItem)
-	m.examples.Title = fmt.Sprintf("Select %s example", m.language.title)
+	m.language = m.activeList.SelectedItem().(langItem)
+	m.activeList.Title = fmt.Sprintf("Select %s example", m.language.title)
 	m.banner = append(m.banner, fmt.Sprintf("%s Language: %s", checkMark, m.language.title))
-	m.state = exampleView
+	exs, ok := m.config.Examples[m.language.value]
+	if !ok {
+		fmt.Printf("No examples for language %s\n", m.language.value)
+		os.Exit(1)
+	}
+	m.activeList = NewExampleList(exs)
+	m.state = exampleListView
 }
 
 func (m *model) selectExample() {
-	m.example = m.examples.SelectedItem().(exampleItem)
+	m.example = m.activeList.SelectedItem().(exampleItem)
 	m.banner = append(m.banner, fmt.Sprintf("%s Example: %s", checkMark, m.example.title))
 	m.pathInput.Focus()
-	m.state = deployView
+	// find selected example in config
+	var deployOptions []examples.Deploy
+	for _, ex := range m.config.Examples[m.language.value] {
+		if ex.Name == m.example.value {
+			deployOptions = ex.Deploy
+			break
+		}
+	}
+
+	m.activeList = NewDeployList(deployOptions)
+	m.state = deployListView
 }
 
 func (m *model) selectDeployType() {
-	m.deployType = m.deploySelector.SelectedItem().(deployItem)
+	m.deployType = m.activeList.SelectedItem().(deployItem)
+
+	var globesToExclude []string
+	for _, d := range m.example.DeployOptions {
+		if d.Type != m.deployType.value {
+			globesToExclude = append(globesToExclude, d.Exclusive...)
+			break
+		}
+	}
+
 	m.banner = append(m.banner, fmt.Sprintf("%s Deploy type: %s", checkMark, m.deployType.title))
 	m.state = pathView
 }
 
-func (m *model) selectClonePath() {
+func (m *model) selectClonePath() error {
 	m.clonePath = m.pathInput.Value()
+	if m.clonePath == "" {
+		m.pathInput.Title = errorStyle.Render("Path can't be empty")
+		m.pathInput.Focus()
+		return fmt.Errorf("path can't be empty")
+	}
+
+	err := cloner.CheckThatPathDoesntExist(m.clonePath)
+	if err != nil {
+		m.pathInput.Title = errorStyle.Render(err.Error())
+		m.pathInput.Focus()
+		return err
+	}
 	m.banner = append(m.banner, fmt.Sprintf("%s Path: %s", checkMark, m.clonePath))
 	m.state = resultView
+	return nil
 }
 
 func (m model) Init() tea.Cmd {
@@ -90,9 +135,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		m.languages.SetWidth(msg.Width)
-		return m, nil
-
+		m.width = msg.Width
+		m.height = msg.Height
+		m.updateListSize()
 	case tea.KeyMsg:
 		switch keypress := msg.String(); keypress {
 		case "ctrl+c":
@@ -101,31 +146,35 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case "enter":
 			switch m.state {
-			case languageView:
+			case languageListView:
 				m.selectLanguage()
-			case exampleView:
+			case exampleListView:
 				m.selectExample()
-			case deployView:
+			case deployListView:
 				m.selectDeployType()
 			case pathView:
-				m.selectClonePath()
-				return m, tea.Quit
+				err := m.selectClonePath()
+				if err == nil {
+					cloner.CloneFiles(
+						m.config.Repo,
+						fmt.Sprintf("%s/%s", m.language.value, m.example.value),
+						m.clonePath,
+						m.globesToExclude,
+					)
+					return m, tea.Quit
+				}
 			}
+			m.updateListSize()
 		}
+
 	}
 	switch m.state {
 	// update whichever model is focused
-	case languageView:
-		m.languages, cmd = m.languages.Update(msg)
-		cmds = append(cmds, cmd)
-	case exampleView:
-		m.examples, cmd = m.examples.Update(msg)
+	case languageListView, exampleListView, deployListView:
+		m.activeList, cmd = m.activeList.Update(msg)
 		cmds = append(cmds, cmd)
 	case pathView:
 		m.pathInput, cmd = m.pathInput.Update(msg)
-		cmds = append(cmds, cmd)
-	case deployView:
-		m.deploySelector, cmd = m.deploySelector.Update(msg)
 		cmds = append(cmds, cmd)
 	default:
 		return m, nil
@@ -136,14 +185,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m model) View() string {
 	s := strings.Join(m.banner, "\n") + "\n"
 	switch m.state {
-	case languageView:
-		s += m.languages.View()
-	case exampleView:
-		s += m.examples.View()
+	case languageListView, exampleListView, deployListView:
+		s += m.activeList.View()
 	case pathView:
 		s += m.pathInput.View()
-	case deployView:
-		s += m.deploySelector.View()
 	default:
 		return s
 	}
@@ -151,18 +196,24 @@ func (m model) View() string {
 	return s
 }
 
-func NewViewModel() tea.Model {
-	l := NewLangList()
+func (m *model) updateListSize() {
+	bannerH := len(m.banner)
+	m.activeList.SetSize(m.width, m.height-bannerH)
+}
 
-	e := NewExampleList(langItem{})
+func NewViewModel(
+	config *examples.Config,
+) tea.Model {
+
+	l := NewLangList(config.Languages)
+
 	cp := NewClonePathView()
 
 	m := model{
-		state:          languageView,
-		languages:      l,
-		examples:       e,
-		deploySelector: NewDeployList(langItem{}, exampleItem{}),
-		pathInput:      cp,
+		state:      languageListView,
+		config:     config,
+		activeList: l,
+		pathInput:  cp,
 	}
 	return m
 }

@@ -2,12 +2,14 @@ package ui
 
 import (
 	"github.com/charmbracelet/bubbles/list"
+	"github.com/nikolaymatrosov/sls-rosetta/internal/examples"
 )
 
 type exampleItem struct {
-	title       string
-	description string
-	value       string
+	title         string
+	description   string
+	value         string
+	DeployOptions []examples.Deploy
 }
 
 func (i exampleItem) Title() string {
@@ -26,39 +28,22 @@ func (i exampleItem) String() string { return i.title }
 
 func (i exampleItem) FilterValue() string { return i.title }
 
-func NewExampleList(item langItem) list.Model {
-	examples := []list.Item{
-		exampleItem{
-			title:       "HTTP",
-			description: "Simple HTTP handler",
-			value:       "http",
-		},
-		exampleItem{
-			title:       "SQS",
-			description: "SQS event handler",
-			value:       "sqs",
-		},
-		exampleItem{
-			title:       "API Gateway",
-			description: "API Gateway handler",
-			value:       "apigateway",
-		},
-		exampleItem{
-			title:       "S3",
-			description: "S3 event handler",
-			value:       "s3",
-		},
-		exampleItem{
-			title:       "Billing",
-			description: "Billing event handler",
-			value:       "billing",
-		},
+func NewExampleList(exs []examples.Example) list.Model {
+	var exampleItems []list.Item
+	for _, example := range exs {
+		exampleItems = append(exampleItems, exampleItem{
+			title:         example.Title,
+			description:   example.Description,
+			value:         example.Name,
+			DeployOptions: example.Deploy,
+		})
 	}
 
-	l := list.New(examples, descriptedItemDelegate{}, defaultWidth, listHeight)
+	dd := list.NewDefaultDelegate()
+
+	l := list.New(exampleItems, dd, 0, 0)
 	l.Title = "Select function type"
 	l.SetShowStatusBar(false)
-	l.SetFilteringEnabled(false)
 	l.Styles.Title = titleStyle
 	l.Styles.PaginationStyle = paginationStyle
 	l.Styles.HelpStyle = helpStyle
