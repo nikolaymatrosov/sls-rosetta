@@ -22,3 +22,6 @@
 go.work
 
 .idea
+**/tf/function.zip
+**/tf/.terraform.lock.hcl
+**/tf/.terraform

@@ -1,8 +1,9 @@
 ## Description
 
 This repository contains code of serverless function written in Go that is deployed to Yandex Cloud.
-It stands behind the API Gateway and is triggered by HTTP requests. In this example, the function
-returns takes a string `name` parametrs from the request body and returns it back.
+The function is made public and can be triggered by HTTP requests. In this example, the function
+returns takes two parametrs from the request body `message` and `number`
+and returns them back.
 
 ## Prerequisites
 
@@ -27,7 +28,7 @@ export TF_VAR_folder_id=b1g8l63q7v4dqkl3bnkj
 export YC_TOKEN=`yc iam create-token`
 ```
 
-To deploy the infrastructure, run the following command:
+To deploy the infrastructure, run the following command and confirm the action typing `yes`:
 
 ```bash
 terraform -chdir=./tf apply
@@ -43,7 +44,7 @@ curl -XPOST \
   -H "Content-Type: application/json"
 ```
 
-To destroy the infrastructure, run the following command:
+To destroy the infrastructure, run the following command and confirm the action typing `yes`:
 
 ```bash
 terraform -chdir=./tf destroy
