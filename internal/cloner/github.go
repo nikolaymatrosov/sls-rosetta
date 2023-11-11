@@ -34,21 +34,39 @@ func (f *File) SetRelPath(basePath string) error {
 	return nil
 }
 
+type Cloner struct {
+	repo           string
+	root           string
+	downloadPath   string
+	globsToExclude []string
+}
+
+func NewCloner(repo string, root string, downloadPath string, globsToExclude []string) Cloner {
+	return Cloner{
+		repo:           repo,
+		root:           root,
+		downloadPath:   downloadPath,
+		globsToExclude: globsToExclude,
+	}
+}
+
 // function that calls github api to get list files in folder of repo
-func GetFileList(repo string, folder string) []File {
+func (c Cloner) GetFileList(folder string) []File {
 	var files []File
+	url := JoinNotEmpty("https://api.github.com/repos", c.repo, "contents", c.root, folder)
 
 	client := resty.New()
 	_, err := client.R().
 		SetHeader("Accept", "application/vnd.github.v3+json").
 		ForceContentType("application/json").
-		SetResult(files).
-		Get(strings.Join([]string{"https://api.github.com/repos", repo, "contents/examples", folder}, "/"))
+		SetResult(&files).
+		Get(url)
+
 	if err != nil {
 		panic(err)
 	}
 	for i := range files {
-		err := files[i].SetRelPath(folder)
+		err := files[i].SetRelPath(c.root)
 		if err != nil {
 			return nil
 		}
@@ -57,15 +75,22 @@ func GetFileList(repo string, folder string) []File {
 }
 
 // function that downloads files from github repo
-func DownloadFiles(downloadPath string, files []File) {
+func (c Cloner) DownloadFiles(folder string, files []File) {
 	client := resty.New()
+	downloadPath := c.downloadPath
+	if folder != "" {
+		downloadPath = JoinNotEmpty(downloadPath, folder)
+	}
 	client.SetOutputDirectory(downloadPath)
 
 	for _, file := range files {
-
+		if file.Type == "dir" {
+			c.Clone(JoinNotEmpty(folder, file.Name))
+			continue
+		}
 		// HTTP response gets saved into file, similar to curl -o flag
 		_, err := client.R().
-			SetOutput(file.RelPath).
+			SetOutput(file.Name).
 			Get(file.DownloadUrl)
 
 		if err != nil {
@@ -75,7 +100,7 @@ func DownloadFiles(downloadPath string, files []File) {
 }
 
 // function that filters files based deploy type
-func FilterFiles(files []File, globsToExclude []string) []File {
+func (c Cloner) FilterFiles(files []File, globsToExclude []string) []File {
 	var filteredFiles []File
 
 FILE_LOOP:
@@ -97,13 +122,18 @@ FILE_LOOP:
 }
 
 // function that clones files from github repo
-func CloneFiles(
-	repo string,
-	folder string,
-	downloadPath string,
-	globsToExclude []string,
-) {
-	files := GetFileList(repo, folder)
-	filteredFiles := FilterFiles(files, globsToExclude)
-	DownloadFiles(downloadPath, filteredFiles)
+func (c Cloner) Clone(folder string) {
+	files := c.GetFileList(folder)
+	filteredFiles := c.FilterFiles(files, c.globsToExclude)
+	c.DownloadFiles(folder, filteredFiles)
+}
+
+func JoinNotEmpty(val ...string) string {
+	var res []string
+	for _, v := range val {
+		if v != "" {
+			res = append(res, v)
+		}
+	}
+	return strings.Join(res, "/")
 }

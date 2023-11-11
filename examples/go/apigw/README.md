@@ -11,12 +11,12 @@ returns takes a string `name` parametrs from the request body and returns it bac
 * [Yandex Cloud CLI](https://cloud.yandex.ru/docs/cli/quickstart)
 * [curl](https://curl.se/download.html)
 
-## Usage
+## Usage with Terraform deploy
 
 To initialize Terraform, run the following command:
 
 ```bash
-make init
+terraform -chdir=./tf init
 ```
 
 To set the environment variables, run the following command:
@@ -27,20 +27,31 @@ export TF_VAR_folder_id=b1g8l63q7v4dqkl3bnkj
 export YC_TOKEN=`yc iam create-token`
 ```
 
-To deploy the infrastructure, run the following command:
+To deploy the infrastructure, run the following command and confirm the action typing `yes`::
 
 ```bash
-make apply
+terraform -chdir=./tf apply
 ```
 
 To test the function, run the following command:
 
 ```bash
-make test
+API_GATEWAY_ENDPOINT=$(terraform -chdir=./tf output -raw api_gateway_endpoint)
+curl -XPOST \
+  "https://$API_GATEWAY_ENDPOINT/demo" \
+  -d '{"name": "test"}' \
+  -H "Content-Type: application/json"
 ```
 
-To destroy the infrastructure, run the following command:
+You should see the following response:
+
+```json
+{"message":"Hello, test!"}
+```
+
+
+To destroy the infrastructure, run the following command and confirm the action typing `yes`:
 
 ```bash
-make destroy
+terraform -chdir=./tf destroy
 ```

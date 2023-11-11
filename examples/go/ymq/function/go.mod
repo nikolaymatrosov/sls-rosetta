@@ -1,4 +1,4 @@
-module sls-api-gw-handler
+module sls-ymq-handler
 
 go 1.21.0
 

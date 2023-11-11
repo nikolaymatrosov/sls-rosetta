@@ -102,6 +102,7 @@ func (m *model) selectDeployType() {
 			break
 		}
 	}
+	m.globesToExclude = globesToExclude
 
 	m.banner = append(m.banner, fmt.Sprintf("%s Deploy type: %s", checkMark, m.deployType.title))
 	m.state = pathView
@@ -155,12 +156,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case pathView:
 				err := m.selectClonePath()
 				if err == nil {
-					cloner.CloneFiles(
+					c := cloner.NewCloner(
 						m.config.Repo,
-						fmt.Sprintf("%s/%s", m.language.value, m.example.value),
+						fmt.Sprintf("examples/%s/%s", m.language.value, m.example.value),
 						m.clonePath,
 						m.globesToExclude,
 					)
+					c.Clone("")
 					return m, tea.Quit
 				}
 			}
