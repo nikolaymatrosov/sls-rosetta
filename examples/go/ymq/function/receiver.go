@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-// Структура запроса API Gateway v1
+// Структура запроса триггера YMQ
 
 type EventMetadata struct {
 	EventId   string    `json:"event_id"`
