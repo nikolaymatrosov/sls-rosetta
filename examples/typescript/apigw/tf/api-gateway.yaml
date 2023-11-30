@@ -1,0 +1,50 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: Test API
+paths:
+  /demo:
+    # HTTP method
+    # YC API Gateway supports GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS, TRACE and additionally
+    # extension that allows to capture any HTTP method: x-yc-apigateway-any-method
+    # Additional info: https://cloud.yandex.ru/docs/api-gateway/concepts/extensions/any-method
+    post:
+      operationId: demo
+      # OpenAPI specification extensions
+      # `x-yc-apigateway-integration` is used to specify the function to be called
+      # Additional info: https://cloud.yandex.ru/docs/api-gateway/concepts/extensions/cloud-functions
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: ${test_function_id}
+        service_account_id: ${sa_id}
+        payload_format_version: "1.0"
+      # `x-yc-apigateway-validator` is used to specify the request and response validation
+      # Additional info: https://cloud.yandex.ru/docs/api-gateway/concepts/extensions/validator
+      x-yc-apigateway-validator:
+        validateRequestBody: true
+        validateResponseBody: true
+      # Request body schema
+      # Docs: https://spec.openapis.org/oas/latest.html#request-body-object
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: ["name"]
+              properties:
+                name:
+                  type: string
+              additionalProperties: false
+      # Response body schema
+      # Docs: https://spec.openapis.org/oas/latest.html#responses-object
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Success

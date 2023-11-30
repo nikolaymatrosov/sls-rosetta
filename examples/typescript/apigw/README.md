@@ -1,13 +1,13 @@
 ## Description
 
-This repository contains code of serverless function written in Go that is deployed to Yandex Cloud.
+This repository contains code of serverless function written in Typescript that is deployed to Yandex Cloud.
 It stands behind the API Gateway and is triggered by HTTP requests. In this example, the function
 returns takes a string `name` parametrs from the request body and returns it back.
 
 ## Prerequisites
 
 * [Terraform](https://www.terraform.io/downloads.html) >= 0.14.0
-* [Go](https://golang.org/doc/install) >= 1.19
+* [Node.js](https://nodejs.org/en/download/) >= 18.16.1
 * [Yandex Cloud CLI](https://cloud.yandex.ru/docs/cli/quickstart)
 * [curl](https://curl.se/download.html)
 
@@ -16,6 +16,7 @@ returns takes a string `name` parametrs from the request body and returns it bac
 To initialize Terraform, run the following command:
 
 ```bash
+(cd function && npm install)
 terraform -chdir=./tf init
 ```
 

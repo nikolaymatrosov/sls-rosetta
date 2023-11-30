@@ -2,8 +2,8 @@ repo: nikolaymatrosov/sls-rosetta
 languages:
   - name: go
     title: Go
-#  - name: typescript
-#    title: TypeScript
+  - name: typescript
+    title: TypeScript
 #  - name: csharp
 #    title: C#
 #  - name: java
@@ -60,5 +60,14 @@ examples:
           exclusive:
             - tf
         - type: none
-
+  typescript:
+    - name: apigw
+      title: API Gateway
+      description: |
+        This example shows how to use the API Gateway to expose a function to the internet.
+      deploy:
+        - type: terraform
+          exclusive:
+            - tf
+        - type: none
 
