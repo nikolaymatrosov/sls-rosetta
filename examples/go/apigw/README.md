@@ -39,7 +39,7 @@ To test the function, run the following command:
 API_GATEWAY_ENDPOINT=$(terraform -chdir=./tf output -raw api_gateway_endpoint)
 curl -XPOST \
   "https://$API_GATEWAY_ENDPOINT/demo" \
-  -d '{"name": "test"}' \
+  -d '{"name1": "test"}' \
   -H "Content-Type: application/json"
 ```
 
