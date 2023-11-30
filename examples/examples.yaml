@@ -50,5 +50,15 @@ examples:
           exclusive:
             - tf
         - type: none
+    - name: storage
+      title: Object Storage trigger
+      description: |
+        This example shows how to use Yandex Object Storage trigger to react on events from the bucket.
+        Also this example shows how to prebuild the function and deploy it as a binary with all dependencies.
+      deploy:
+        - type: terraform
+          exclusive:
+            - tf
+        - type: none
 
 
