@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGoHelloExample(t *testing.T) {
+func TestTypescriptHelloExample(t *testing.T) {
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		TerraformDir: "../../../examples/typescript/hello/tf",
 		Vars: map[string]interface{}{

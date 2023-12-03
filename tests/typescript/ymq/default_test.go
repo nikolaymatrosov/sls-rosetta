@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"os"
 	"testing"
 
@@ -12,14 +13,30 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
+	smithyendpoints "github.com/aws/smithy-go/endpoints"
 	"github.com/go-resty/resty/v2"
 	"github.com/go-test/deep"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 )
 
-func TestGoYmqExample(t *testing.T) {
+type customResolver2 struct {
+}
+
+func (c customResolver2) ResolveEndpoint(ctx context.Context, params sqs.EndpointParameters) (
+	smithyendpoints.Endpoint,
+	error,
+) {
+	return smithyendpoints.Endpoint{
+		URI: url.URL{
+			Scheme: "https",
+			Host:   "message-queue.api.cloud.yandex.net",
+		},
+	}, nil
+}
+
+func TestTypescriptYmqExample(t *testing.T) {
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
-		TerraformDir: "../../../examples/go/ymq/tf",
+		TerraformDir: "../../../examples/typescript/ymq/tf",
 		Vars: map[string]interface{}{
 			"cloud_id":  os.Getenv("CLOUD_ID"),
 			"folder_id": os.Getenv("FOLDER_ID"),
@@ -55,13 +72,17 @@ func TestGoYmqExample(t *testing.T) {
 
 	cfg, err := config.LoadDefaultConfig(
 		ctx,
+
 		config.WithEndpointResolverWithOptions(customResolver),
 		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(accessKey, secretKey, "")),
+		config.WithDefaultRegion("ru-central1"),
 	)
 	if err != nil {
 		panic("configuration error, " + err.Error())
 	}
-	ymqClient := sqs.NewFromConfig(cfg)
+	ymqClient := sqs.NewFromConfig(cfg,
+		sqs.WithEndpointResolverV2(customResolver2{}),
+	)
 
 	gQInput := &sqs.GetQueueUrlInput{
 		QueueName: &ymqName,
@@ -91,7 +112,6 @@ func TestGoYmqExample(t *testing.T) {
 	}
 
 	print(resp)
-
 	result := make(map[string]interface{})
 	err = json.Unmarshal([]byte(*resp.Messages[0].Body), &result)
 	if err != nil {
@@ -104,4 +124,5 @@ func TestGoYmqExample(t *testing.T) {
 	if diff := deep.Equal(expected, result); diff != nil {
 		t.Error(diff)
 	}
+
 }
