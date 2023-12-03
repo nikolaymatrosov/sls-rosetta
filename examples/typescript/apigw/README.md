@@ -16,7 +16,6 @@ returns takes a string `name` parametrs from the request body and returns it bac
 To initialize Terraform, run the following command:
 
 ```bash
-(cd function && npm install)
 terraform -chdir=./tf init
 ```
 

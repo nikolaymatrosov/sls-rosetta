@@ -31,10 +31,10 @@ paths:
           application/json:
             schema:
               type: object
+              required: [name]
               properties:
                 name:
                   type: string
-                  required: true
               additionalProperties: false
       # Response body schema
       # Docs: https://spec.openapis.org/oas/latest.html#responses-object
