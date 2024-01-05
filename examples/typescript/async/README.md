@@ -22,8 +22,8 @@ terraform -chdir=./tf init
 To set the environment variables, run the following command:
 
 ```bash
-#export TF_VAR_cloud_id=b1g***
-#export TF_VAR_folder_id=b1g***
+export TF_VAR_cloud_id=b1g***
+export TF_VAR_folder_id=b1g***
 export YC_TOKEN=`yc iam create-token`
 ```
 
