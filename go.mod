@@ -25,7 +25,11 @@ require (
 	gopkg.in/yaml.v3 v3.0.1
 )
 
-require github.com/go-test/deep v1.0.7
+require (
+	github.com/go-test/deep v1.0.7
+	github.com/yandex-cloud/go-genproto v0.0.0-20231204110853-8db1d6a6f340
+	github.com/yandex-cloud/go-sdk v0.0.0-20231204111359-25f2607c41ac
+)
 
 require (
 	cloud.google.com/go v0.110.7 // indirect
@@ -55,6 +59,8 @@ require (
 	github.com/containerd/console v1.0.4-0.20230313162750-1ae8d489ac81 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
+	github.com/ghodss/yaml v1.0.0 // indirect
+	github.com/golang-jwt/jwt/v4 v4.1.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
@@ -123,4 +129,5 @@ require (
 	google.golang.org/grpc v1.58.2 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
