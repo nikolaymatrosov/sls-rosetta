@@ -15,6 +15,7 @@ func sendMessageToQueue(
 	ymqName string,
 	message string,
 	origin string,
+	delay int32,
 ) (*sqs.SendMessageOutput, error) {
 	// Create a custom endpoint resolver to resolve Yandex Message Queue endpoint
 	customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
@@ -54,8 +55,9 @@ func sendMessageToQueue(
 				StringValue: aws.String(origin),
 			},
 		},
-		MessageBody: aws.String(message),
-		QueueUrl:    urlRes.QueueUrl,
+		MessageBody:  aws.String(message),
+		QueueUrl:     urlRes.QueueUrl,
+		DelaySeconds: delay,
 	}
 	resp, err := client.SendMessage(ctx, sMInput)
 	return resp, nil

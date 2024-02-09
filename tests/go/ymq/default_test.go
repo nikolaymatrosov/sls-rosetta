@@ -73,26 +73,22 @@ func TestGoYmqExample(t *testing.T) {
 		t.Errorf("Got an error getting the queue URL: %s", err)
 	}
 
-	resp, err := ymqClient.ReceiveMessage(context.TODO(), &sqs.ReceiveMessageInput{
-		QueueUrl:            urlRes.QueueUrl,
-		MaxNumberOfMessages: 1,
-		MessageAttributeNames: []string{
-			"All",
-		},
-		AttributeNames: []types.QueueAttributeName{
-			types.QueueAttributeNameAll,
-		},
-		WaitTimeSeconds: 20,
-	})
+	resp, err := receive(ymqClient, urlRes, 20)
 	if err != nil {
-		fmt.Println("Got an error receiving the message:")
-		fmt.Println(err)
-		return
+		t.Error("Failed to receive message")
+	}
+	if len(resp.Messages) != 0 {
+		t.Error("Trigger does not respect the delay")
 	}
 
-	print(resp)
-
+	resp, err = receive(ymqClient, urlRes, 20)
+	if err != nil {
+		t.Error("Failed to receive message")
+	}
 	result := make(map[string]interface{})
+	if len(resp.Messages) == 0 {
+		t.Error("No messages received")
+	}
 	err = json.Unmarshal([]byte(*resp.Messages[0].Body), &result)
 	if err != nil {
 		return
@@ -104,4 +100,24 @@ func TestGoYmqExample(t *testing.T) {
 	if diff := deep.Equal(expected, result); diff != nil {
 		t.Error(diff)
 	}
+}
+
+func receive(ymqClient *sqs.Client, urlRes *sqs.GetQueueUrlOutput, timout int32) (*sqs.ReceiveMessageOutput, error) {
+	resp, err := ymqClient.ReceiveMessage(context.TODO(), &sqs.ReceiveMessageInput{
+		QueueUrl:            urlRes.QueueUrl,
+		MaxNumberOfMessages: 1,
+		MessageAttributeNames: []string{
+			"All",
+		},
+		AttributeNames: []types.QueueAttributeName{
+			types.QueueAttributeNameAll,
+		},
+		WaitTimeSeconds: timout,
+	})
+	if err != nil {
+		fmt.Println("Got an error receiving the message:")
+		fmt.Println(err)
+		return nil, err
+	}
+	return resp, nil
 }

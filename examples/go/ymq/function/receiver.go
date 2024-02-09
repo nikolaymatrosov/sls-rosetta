@@ -53,6 +53,7 @@ type Request struct {
 	Name string `json:"name"`
 }
 
+//goland:noinspection GoUnusedExportedFunction
 func Receiver(ctx context.Context, event *YMQRequest) (*YMQResponse, error) {
 	ymqName := os.Getenv("YMQ_NAME")
 
@@ -65,7 +66,7 @@ func Receiver(ctx context.Context, event *YMQRequest) (*YMQResponse, error) {
 		fmt.Printf("%+v\n", req)
 		req.Name = "test"
 		resp := fmt.Sprintf(`{"result": "success", "name": "%s"}`, req.Name)
-		_, _ = sendMessageToQueue(ctx, ymqName, resp, "From Receiver Function")
+		_, _ = sendMessageToQueue(ctx, ymqName, resp, "From Receiver Function", 0)
 
 	}
 	return &YMQResponse{

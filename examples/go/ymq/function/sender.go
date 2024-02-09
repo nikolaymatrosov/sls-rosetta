@@ -40,10 +40,17 @@ type HttpResult struct {
 	IsBase64Encoded   bool              `json:"isBase64Encoded"`
 }
 
+//goland:noinspection GoUnusedExportedFunction,GoUnusedParameter
 func Sender(ctx context.Context, event *HttpEvent) (*HttpResult, error) {
 	ymqName := os.Getenv("YMQ_NAME")
 
-	resp, err := sendMessageToQueue(ctx, ymqName, `{"name":"test"}`, "From Sender Function")
+	resp, err := sendMessageToQueue(
+		ctx,
+		ymqName,
+		`{"name":"test"}`,
+		"From Sender Function",
+		30,
+	)
 	if err != nil {
 		fmt.Println("Got an error sending the message:")
 		fmt.Println(err)
