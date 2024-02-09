@@ -20,7 +20,7 @@ export async function handler(event: Http.Event): Promise<Http.Result> {
                 TableName: 'demo',
                 KeyConditionExpression: 'id = :id',
                 ExpressionAttributeValues: {
-                    ':id': 1
+                    ':id': parseInt(event.queryStringParameters.id, 10)
                 }
             });
 

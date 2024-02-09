@@ -53,7 +53,7 @@ To fetch the data from the database, run the following command:
 
 ```bash
 FUNCTION_ID=$(terraform -chdir=./tf output -raw function_id)
-curl "https://functions.yandexcloud.net/$FUNCTION_ID" \
+curl "https://functions.yandexcloud.net/$FUNCTION_ID?id=1" \
   -H'Content-type: application/json'
 ```
 

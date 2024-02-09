@@ -70,4 +70,39 @@ examples:
           exclusive:
             - tf
         - type: none
-
+    - name: ymq
+      title: YMQ
+      description: |
+          This example shows how to use YMQ to send and receive messages.
+      deploy:
+        - type: terraform
+          exclusive:
+              - tf
+        - type: none
+    - name: async
+      title: Async
+      description: |
+          This example shows how to invoke a function asynchronously.
+      deploy:
+        - type: terraform
+          exclusive:
+              - tf
+        - type: none
+    - name: hello
+      title: Hello World
+      description: |
+          This example shows how to create a simple function that returns a string.
+      deploy:
+        - type: terraform
+          exclusive:
+              - tf
+        - type: none
+    - name: documentdb
+      title: DocumentDB
+      description: |
+          This example shows how to use DocumentDB to store and retrieve data.
+      deploy:
+        - type: terraform
+          exclusive:
+              - tf
+        - type: none
