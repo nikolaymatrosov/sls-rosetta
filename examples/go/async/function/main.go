@@ -10,15 +10,11 @@ type Req struct {
 	Name string `json:"name"`
 }
 
-func Handler(ctx context.Context, req Req) ([]byte, error) {
+func Handler(_ context.Context, req Req) ([]byte, error) {
 	// get body
 	fmt.Printf("Body: %+v\n", req)
 
-	// unmarshal body
-	//var body map[string]interface{}
-	//
-	//err := json.Unmarshal(req, &body)
-
+	// return response
 	resp := map[string]interface{}{
 		"result": "success",
 		"name":   req.Name,
