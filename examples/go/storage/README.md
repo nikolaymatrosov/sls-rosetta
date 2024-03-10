@@ -1,11 +1,11 @@
 ## Description
 
-This expample showhs how to use storage trigger with Go function. The function is triggered by a new object
+This example shows how to use storage trigger with Go function. The function is triggered by a new object
 in the bucket. The function reads the object assuming it is an image and resizes it to 100x100 pixels, putting
 the thumbnail to the same bucket into the `thumbnails` folder.
 
 This function also uses the `libvips` to show how to provide binary dependencies to the function.
-If you won't upload the library along with the function, you'll get the following error:
+If you don't upload the library along with the function, you'll get the following error:
 
 ```
 # pkg-config --cflags  -- vips
