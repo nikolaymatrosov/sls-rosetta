@@ -25,3 +25,5 @@ go.work
 **/tf/function.zip
 **/tf/.terraform.lock.hcl
 **/tf/.terraform
+
+.DS_Store
