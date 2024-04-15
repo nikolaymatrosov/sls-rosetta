@@ -3,27 +3,25 @@ resource "yandex_ydb_database_serverless" "db" {
   folder_id = var.folder_id
 }
 
-resource "null_resource" "document-table" {
-  provisioner "local-exec" {
-    environment = {
-      AWS_ACCESS_KEY_ID     = yandex_iam_service_account_static_access_key.db_admin.access_key
-      AWS_SECRET_ACCESS_KEY = yandex_iam_service_account_static_access_key.db_admin.secret_key
-    }
-    command = <<EOF
-          aws dynamodb create-table \
-            --table-name demo \
-            --attribute-definitions \
-            AttributeName=id,AttributeType=N \
-            AttributeName=key,AttributeType=S \
-            AttributeName=value,AttributeType=S \
-            --key-schema \
-            AttributeName=id,KeyType=HASH \
-            AttributeName=key,KeyType=RANGE \
-            --endpoint ${yandex_ydb_database_serverless.db.document_api_endpoint}
-EOF
+resource "aws_dynamodb_table" "test" {
+  depends_on = [
+    yandex_resourcemanager_folder_iam_binding.db_admin,
+    yandex_iam_service_account_static_access_key.db_admin,
+    yandex_ydb_database_serverless.db
+  ]
+  name         = "demo"
+  billing_mode = "PAY_PER_REQUEST" # только такой billing_mode поддерживается у нас и его нужно явно указывать.
+
+  hash_key  = "id"
+  range_key = "key"
+
+  attribute {
+    name = "id"
+    type = "N"
   }
-    depends_on = [
-      yandex_ydb_database_serverless.db,
-      yandex_iam_service_account_static_access_key.db_admin
-    ]
+
+  attribute {
+    name = "key"
+    type = "S"
+  }
 }
