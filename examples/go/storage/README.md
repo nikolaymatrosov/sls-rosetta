@@ -25,15 +25,17 @@ Then we need to find lib in the Ubuntu repository and download:
 To build the function, run the following command:
 
 ```bash
+export GO_VERSION=1.21.9
 docker build --platform linux/amd64 \
-    -t ycf-go:1.21.0 \
+    --build-arg GO_VERSION=${GO_VERSION} \
+    -t ycf-go:${GO_VERSION} \
     -f ./Dockerfile .
 mkdir ./build || true
 docker run --rm \
     --platform linux/amd64 \
     -v "./function:/function" \
     -v "./build:/build" \
-    ycf-go:1.21.0 \
+    ycf-go:${GO_VERSION} \
     /bin/sh -c "cd function && ./build.sh"
 ```
 
