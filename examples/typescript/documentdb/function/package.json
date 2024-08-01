@@ -5,7 +5,7 @@
     "build": "npx tsc && cp package*.json ../dist/"
   },
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "3.506.0",
+    "@aws-sdk/client-dynamodb": "3.621.0",
     "@aws-sdk/lib-dynamodb": "3.506.0"
   },
 
