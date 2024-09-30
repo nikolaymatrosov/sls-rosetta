@@ -1,0 +1,37 @@
+openapi: 3.0.0
+info:
+  title: for-serverless-shortener
+  version: 1.0.0
+paths:
+  /:
+    get:
+      x-yc-apigateway-integration:
+        type: object_storage
+        bucket: ${bucket}        # <-- имя бакета
+        object: 'index.html'          # <-- имя html-файла
+        presigned_redirect: false
+        service_account_id: ${service_account_id} # <-- идентификатор сервисного аккаунта
+      operationId: static
+  /shorten:
+    post:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: ${ function_id }               # <-- идентификатор функции
+        service_account_id: ${ service_account_id } # <-- идентификатор сервисного аккаунта
+      operationId: shorten
+  /r/{id}:
+    get:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: ${ function_id }               # <-- идентификатор функции
+        service_account_id: ${ service_account_id } # <-- идентификатор сервисного аккаунта
+      operationId: redirect
+      parameters:
+        - description: id of the url
+          explode: false
+          in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          style: simple
