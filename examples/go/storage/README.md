@@ -70,7 +70,7 @@ export YC_TOKEN=`yc iam create-token`
 To deploy the infrastructure, run the following command and confirm the action typing `yes`:
 
 ```bash
-terraform -chdir=./tf apply
+terraform -chdir=./tf apply --auto-approve
 ```
 
 To test the function you can upload an image to the bucket:
@@ -79,8 +79,8 @@ To test the function you can upload an image to the bucket:
 BUCKET=$(terraform -chdir=./tf output -raw bucket)
 
 aws s3 cp --endpoint-url=https://storage.yandexcloud.net \
-    ./image.jpg \
-    s3://$BUCKET/uploads/image.jpg
+    ./image.png \
+    s3://$BUCKET/uploads/image.png
 ```
 
 Eventually, you'll see the thumbnail in the `thumbnail` folder of the bucket.

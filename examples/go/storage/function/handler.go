@@ -5,22 +5,21 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net/url"
 	"strings"
 	"sync"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	smithyendpoints "github.com/aws/smithy-go/endpoints"
 )
 
 // Handler handles an object storage event.
 // It creates a new S3 client, retrieves the object involved in the event, and returns a response.
 func Handler(ctx context.Context, event *ObjectStorageEvent) (*ObjectStorageResponse, error) {
-	customResolver := createResolver()
-
 	// Load the AWS configuration with the custom endpoint resolver.
 	cfg, err := config.LoadDefaultConfig(ctx,
-		config.WithEndpointResolverWithOptions(customResolver),
 		config.WithDefaultRegion("ru-central1"),
 	)
 	if err != nil {
@@ -28,7 +27,10 @@ func Handler(ctx context.Context, event *ObjectStorageEvent) (*ObjectStorageResp
 	}
 
 	// Create a new S3 client.
-	s3Client := s3.NewFromConfig(cfg)
+	s3Client := s3.NewFromConfig(cfg, func(o *s3.Options) {
+		o.Region = "ru-central1"
+		o.EndpointResolverV2 = &resolverV2{}
+	})
 	// Initialize a WaitGroup to manage the goroutine.
 	wg := sync.WaitGroup{}
 	// Add a task to the WaitGroup.
@@ -41,7 +43,7 @@ func Handler(ctx context.Context, event *ObjectStorageEvent) (*ObjectStorageResp
 			Key:    aws.String(message.Details.ObjectID),
 		})
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to get object: %w", err)
 		}
 
 		// Print the size of the object to stdout.
@@ -69,7 +71,7 @@ func Handler(ctx context.Context, event *ObjectStorageEvent) (*ObjectStorageResp
 
 			// If an error occurred while putting the object, panic.
 			if err != nil {
-				panic(err)
+				panic(fmt.Errorf("failed to upload object: %w", err))
 			}
 
 			// Signal to the WaitGroup that the task is done.
@@ -92,18 +94,19 @@ func Handler(ctx context.Context, event *ObjectStorageEvent) (*ObjectStorageResp
 	}, nil
 }
 
-// createResolver creates a custom endpoint resolver for the S3 service.
-func createResolver() aws.EndpointResolverWithOptionsFunc {
-	return func(service, region string, options ...interface{}) (aws.Endpoint, error) {
-		// If the requested service is S3, return the correct endpoint.
-		if service == s3.ServiceID {
-			return aws.Endpoint{
-				PartitionID:   "yc",
-				URL:           "https://storage.yandexcloud.net",
-				SigningRegion: "ru-central1",
-			}, nil
-		}
-		// If the requested service is not S3, return an error.
-		return aws.Endpoint{}, fmt.Errorf("unknown endpoint requested")
+type resolverV2 struct {
+	// you could inject additional application context here as well
+}
+
+func (*resolverV2) ResolveEndpoint(ctx context.Context, params s3.EndpointParameters) (
+	smithyendpoints.Endpoint, error,
+) {
+	u, err := url.Parse("https://storage.yandexcloud.net")
+	if err != nil {
+		return smithyendpoints.Endpoint{}, err
 	}
+	u.Path += "/" + *params.Bucket
+	return smithyendpoints.Endpoint{
+		URI: *u,
+	}, nil
 }
