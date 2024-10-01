@@ -47,7 +47,7 @@ func Handler(ctx context.Context, event *ObjectStorageEvent) (*ObjectStorageResp
 		}
 
 		// Print the size of the object to stdout.
-		fmt.Println("Object size:", object.ContentLength)
+		fmt.Printf("Object size: %d", *object.ContentLength)
 		thumbnailKey := "thumbnail/" + strings.TrimPrefix(message.Details.ObjectID, "uploads/")
 
 		pipeReader, pipeWriter := io.Pipe()
