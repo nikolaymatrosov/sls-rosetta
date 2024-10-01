@@ -35,6 +35,7 @@ resource "yandex_resourcemanager_folder_iam_binding" "trigger_sa" {
   members   = [
     "serviceAccount:${yandex_iam_service_account.trigger_sa.id}",
   ]
+  sleep_after = 5
 }
 
 resource "yandex_iam_service_account" "ymq_writer" {
@@ -51,7 +52,7 @@ resource "yandex_resourcemanager_folder_iam_binding" "ymq_writer" {
   members   = [
     "serviceAccount:${yandex_iam_service_account.ymq_writer.id}",
   ]
-
+  sleep_after = 5
 }
 
 resource "yandex_iam_service_account_static_access_key" "ymq_writer" {
@@ -74,6 +75,7 @@ resource "yandex_resourcemanager_folder_iam_binding" "ymq_reader" {
   members   = [
     "serviceAccount:${yandex_iam_service_account.ymq_reader.id}",
   ]
+  sleep_after = 5
 }
 
 resource "yandex_iam_service_account_static_access_key" "ymq_reader" {

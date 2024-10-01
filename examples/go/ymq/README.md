@@ -37,7 +37,7 @@ terraform -chdir=./tf apply
 To test the function, run the following command:
 
 ```bash
-SEND_FUNC_ID=$(terraform -chdir=./tf output -raw send_function_id)
+SEND_FUNC_ID=$(terraform -chdir=./tf output -raw sender_function_id)
 curl -XPOST \
   "https://functions.yandexcloud.net/$SEND_FUNC_ID?integration=raw" \
   -d '{"message": "Hello, world", "number": 24}' \
