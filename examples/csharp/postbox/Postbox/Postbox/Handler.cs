@@ -27,7 +27,7 @@ public class Handler
                 {
                     Destination = new Destination
                     {
-                        ToAddresses = ["nikolay.matrosov@gmail.com"]
+                        ToAddresses = ["receiver@domain.com"]
                     },
                     Content = new EmailContent
                     {
@@ -48,7 +48,7 @@ public class Handler
                             }
                         }
                     },
-                    FromEmailAddress = "noreply@ycld.ru"
+                    FromEmailAddress = "noreply@yourdomain.com"
                 });
             messageId = response.MessageId;
         }
