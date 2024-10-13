@@ -34,12 +34,14 @@ terraform -chdir=./tf apply --auto-approve
 To test the function, run the following command:
 
 ```bash
-FUNCTION_ID=$(terraform -chdir=./tf output -raw function_id)
+FUNCTION_ID=$(terraform -chdir=./tf output -raw yc_function_id)
 curl "https://functions.yandexcloud.net/$FUNCTION_ID" \
   -H "Content-Type: application/json"
 ```
 
-You should see the following plain-text response with the message ID:
+Or you can use `aws_function_id` output value instead of `yc_function_id`  to test second function.
+
+In both cases you should see the following plain-text response with the message ID:
 
 ```
 D4UM7H5G7Z1Y.TVC6GXAH7KMR@ingress1-vla
