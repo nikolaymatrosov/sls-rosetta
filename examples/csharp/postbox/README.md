@@ -35,8 +35,9 @@ To test the function, run the following command:
 
 ```bash
 FUNCTION_ID=$(terraform -chdir=./tf output -raw function_id)
-curl "https://functions.yandexcloud.net/$FUNCTION_ID?name=test" \
-  -H "Content-Type: application/json"
+curl "https://functions.yandexcloud.net/$FUNCTION_ID" \
+  -H "Content-Type: application/json" \
+  -d '{}' -X POST
 ```
 
 You should see the following plain-text response with the message ID:
