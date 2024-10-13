@@ -19,3 +19,10 @@ resource "yandex_function" "postbox_function" {
     AWS_ACCESS_KEY_ID     = yandex_iam_service_account_static_access_key.postbox_sender_key.access_key
   }
 }
+
+// IAM binding for making function public
+resource "yandex_function_iam_binding" "postbox_function_binding" {
+  function_id = yandex_function.postbox_function.id
+  role        = "functions.functionInvoker"
+  members = ["system:allUsers"]
+}
