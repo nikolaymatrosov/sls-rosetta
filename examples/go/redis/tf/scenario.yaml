@@ -1,0 +1,42 @@
+pandora:
+  enabled: true
+  package: yandextank.plugins.Pandora
+  config_content:
+    pools:
+      - id: HTTP
+        gun:
+          type: http/scenario
+          target: "functions.yandexcloud.net:443"
+          ssl: true
+        ammo:
+          type: http/scenario
+          file: ./ammo.hcl
+        result:
+          type: phout
+          destination: ./phout.log
+        rps:
+          - duration: 10s # Время теста.
+            type: step # Тип нагрузки.
+            from: 100
+            to: 5000
+            step: 250
+        startup:
+          type: once
+          times: 1000 # Количество тестирующих потоков.
+    log:
+      level: error
+    monitoring:
+      expvar:
+        enabled: true
+        port: 1234
+autostop: # Автостоп.
+  enabled: true
+  package: yandextank.plugins.Autostop
+  autostop:
+    - limit(2m) # Завершение теста по таймауту.
+core: {}
+uploader:
+  enabled: true
+  package: yandextank.plugins.DataUploader
+  job_name: '[example][pandora][step]'
+  api_address: loadtesting.api.cloud.yandex.net:443
