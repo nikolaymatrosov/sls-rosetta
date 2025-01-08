@@ -1,0 +1,1 @@
+echo $GIGACHAT_API_KEY
