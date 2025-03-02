@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 )
 
 // APIGatewayRequest is a struct that represents the structure of an API Gateway v1 request.
@@ -80,8 +81,10 @@ type Response struct {
 	Message string `json:"message"`
 }
 
-// Handler is a function that handles API Gateway requests and responses.
-func Handler(ctx context.Context, event *APIGatewayRequest) (*APIGatewayResponse, error) {
+// ApiGatewayEventHandler is a function that handles API Gateway requests and responses.
+//
+//goland:noinspection ALL
+func ApiGatewayEventHandler(ctx context.Context, event *APIGatewayRequest) (*APIGatewayResponse, error) {
 	req := &Request{}
 
 	// The Body field of the event request is converted into a Request object to get the passed name.
@@ -108,4 +111,29 @@ func Handler(ctx context.Context, event *APIGatewayRequest) (*APIGatewayResponse
 		Body:            string(response),
 		IsBase64Encoded: false,
 	}, nil
+}
+
+//goland:noinspection ALL
+func ResponseWriterHandler(w http.ResponseWriter, r *http.Request) {
+	router := http.NewServeMux()
+	fmt.Printf("%+v\n", r)
+	router.HandleFunc("/router/health", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{"status": "ok"}`))
+	})
+	router.HandleFunc("/router/", func(w http.ResponseWriter, r *http.Request) {
+
+		res := map[string]interface{}{}
+		for k, v := range r.Header {
+			res[k] = v
+		}
+		jsonRes, _ := json.Marshal(res)
+
+		// The response is encoded into JSON and written to the response writer.
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write(jsonRes)
+	})
+
+	router.ServeHTTP(w, r)
 }

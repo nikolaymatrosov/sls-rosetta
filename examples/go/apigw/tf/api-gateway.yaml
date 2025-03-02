@@ -48,3 +48,27 @@ paths:
                   message:
                     type: string
           description: Success
+  /router/{route+}:
+    get:
+      operationId: router
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: ${route_function_id}
+        service_account_id: ${sa_id}
+#        payload_format_version: "1.0"
+      parameters:
+        - name: route
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Success
