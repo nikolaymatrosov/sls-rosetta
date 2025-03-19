@@ -1,0 +1,5 @@
+.terraform
+.terraform.lock.hcl
+dkim_dns_value.txt
+*.pem
+.tfvars
