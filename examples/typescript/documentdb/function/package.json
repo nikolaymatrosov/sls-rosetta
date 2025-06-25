@@ -5,13 +5,13 @@
     "build": "npx tsc && cp package*.json ../dist/"
   },
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "3.506.0",
-    "@aws-sdk/lib-dynamodb": "3.506.0"
+    "@aws-sdk/client-dynamodb": "3.835.0",
+    "@aws-sdk/lib-dynamodb": "3.835.0"
   },
 
   "devDependencies": {
-    "@types/node": "^20.10.1",
-    "@yandex-cloud/function-types": "2.1.1",
-    "typescript": "5.3.2"
+    "@types/node": "^24.0.4",
+    "@yandex-cloud/function-types": "2.1.2",
+    "typescript": "5.8.3"
   }
 }

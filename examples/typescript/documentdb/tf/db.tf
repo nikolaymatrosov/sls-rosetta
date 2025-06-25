@@ -1,6 +1,7 @@
 resource "yandex_ydb_database_serverless" "db" {
   name      = "test-ydb-serverless"
   folder_id = var.folder_id
+  location_id = "ru-central1"
 }
 
 resource "aws_dynamodb_table" "test" {
