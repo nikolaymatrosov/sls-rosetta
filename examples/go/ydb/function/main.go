@@ -12,7 +12,7 @@ import (
 	"github.com/ydb-platform/ydb-go-sdk/v3/table/result"       // для работы с table-сервисом
 	"github.com/ydb-platform/ydb-go-sdk/v3/table/result/named" // для работы с table-сервисом
 	"github.com/ydb-platform/ydb-go-sdk/v3/table/types"        // для работы с типами YDB и значениями
-	"github.com/ydb-platform/ydb-go-yc"                        // для работы с YDB в Яндекс Облаке
+	yc "github.com/ydb-platform/ydb-go-yc"                     // для работы с YDB в Яндекс Облаке
 )
 
 //goland:noinspection GoUnusedExportedFunction
