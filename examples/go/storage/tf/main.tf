@@ -24,7 +24,7 @@ resource "yandex_storage_object" "function_code" {
 resource "yandex_function" "storage-handler" {
   name              = "storage-handler"
   user_hash         = data.archive_file.function_code.output_sha
-  runtime           = "golang121"
+  runtime           = "golang123"
   entrypoint        = "handler.Handler"
   memory            = "128"
   execution_timeout = "10"

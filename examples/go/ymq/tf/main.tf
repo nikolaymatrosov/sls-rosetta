@@ -7,7 +7,7 @@ resource "archive_file" "function_files" {
 resource "yandex_function" "ymq_sender" {
   name               = "ymq-sender"
   user_hash          = archive_file.function_files.output_sha256
-  runtime            = "golang121"
+  runtime            = "golang123"
   entrypoint         = "sender.Sender"
   memory             = "128"
   execution_timeout  = "10"
@@ -34,7 +34,7 @@ resource "yandex_function_iam_binding" "ymq_sender_binding" {
 resource "yandex_function" "ymq_receiver" {
   name               = "ymq-receiver"
   user_hash          = archive_file.function_files.output_sha256
-  runtime            = "golang121"
+  runtime            = "golang123"
   entrypoint         = "receiver.Receiver"
   memory             = "128"
   execution_timeout  = "10"

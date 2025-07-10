@@ -3,15 +3,10 @@ module github.com/nikolaymatrosov/sls-rosetta
 go 1.21.0
 
 require (
-	// We cannot use the latest version of the aws-sdk-go-v2 because it BREAKS the compatibility with the YMQ.
-	// https://github.com/aws/aws-sdk-go-v2/issues/2370
 	github.com/aws/aws-sdk-go-v2 v1.22.1
 	github.com/aws/aws-sdk-go-v2/config v1.20.0
 	github.com/aws/aws-sdk-go-v2/credentials v1.14.0
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.41.0
-	// We cannot use the latest version of the sqs because it uses new JSON protocol v1 which is not supported
-	// by YMQ. Latest version of the sqs which uses query protocol is v1.26.0. And as it is version from 2023-11-01
-	// it is not compatible with the aws-sdk-go-v2 greater than v1.22.2.
 	github.com/aws/aws-sdk-go-v2/service/sqs v1.26.0
 	github.com/aws/smithy-go v1.17.0
 	github.com/charmbracelet/bubbles v0.16.1

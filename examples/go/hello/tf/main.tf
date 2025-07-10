@@ -7,7 +7,7 @@ resource "archive_file" "function_files" {
 resource "yandex_function" "hello_function" {
   name               = "hello-world"
   user_hash          = archive_file.function_files.output_sha256
-  runtime            = "golang121"
+  runtime            = "golang123"
   entrypoint         = "index.Handler"
   memory             = "128"
   execution_timeout  = "10"

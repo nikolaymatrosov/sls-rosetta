@@ -31,7 +31,7 @@ resource "yandex_function" "redis_function" {
   for_each          = local.funcs
   name              = each.value.name
   user_hash         = data.archive_file.function_files.output_sha256
-  runtime           = "golang121"
+  runtime           = "golang123"
   entrypoint        = each.value.handler
   memory            = "128"
   execution_timeout = "10"

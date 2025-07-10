@@ -7,7 +7,7 @@ data "archive_file" "function_files" {
 resource "yandex_function" "postbox_aws" {
   name              = "postbox-aws"
   user_hash         = data.archive_file.function_files.output_sha256
-  runtime           = "golang121"
+  runtime           = "golang123"
   entrypoint        = "index.AwsHandler"
   memory            = "128"
   execution_timeout = "10"
@@ -24,7 +24,7 @@ resource "yandex_function" "postbox_aws" {
 resource "yandex_function" "postbox_yc" {
   name              = "postbox-yc"
   user_hash         = data.archive_file.function_files.output_sha256
-  runtime           = "golang121"
+  runtime           = "golang123"
   entrypoint        = "index.YcHandler"
   memory            = "128"
   execution_timeout = "10"
