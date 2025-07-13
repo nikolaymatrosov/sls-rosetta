@@ -25,7 +25,7 @@ Then we need to find lib in the Ubuntu repository and download:
 To build the function, run the following command:
 
 ```bash
-export GO_VERSION=1.21.9
+export GO_VERSION=1.23.9
 docker build --platform linux/amd64 \
     --build-arg GO_VERSION=${GO_VERSION} \
     -t ycf-go:${GO_VERSION} \
@@ -47,7 +47,7 @@ to Object Storage as it will exceed the size limit for direct upload — 3.5 MB.
 ## Prerequisites
 
 * [Terraform](https://www.terraform.io/downloads.html) >= 0.14.0
-* [Go](https://golang.org/doc/install) >= 1.19
+* [Go](https://golang.org/doc/install) == 1.23.9
 * [Yandex Cloud CLI](https://cloud.yandex.ru/docs/cli/quickstart)
 * [curl](https://curl.se/download.html)
 
