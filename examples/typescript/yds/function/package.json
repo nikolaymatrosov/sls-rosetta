@@ -1,0 +1,13 @@
+{
+  "name": "yds-producer-function",
+  "version": "1.0.0",
+  "main": "producer.ts",
+  "type": "module",
+  "dependencies": {
+    "@ydbjs/core": "6.0.0-alpha.29",
+    "@ydbjs/topic": "6.0.0-alpha.29",
+    "express": "^4.18.2",
+    "body-parser": "^1.20.2",
+    "@yandex-cloud/function-types": "2.1.2"
+  }
+} 
