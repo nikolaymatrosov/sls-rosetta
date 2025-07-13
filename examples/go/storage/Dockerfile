@@ -1,5 +1,5 @@
 FROM ubuntu:jammy
-ARG GO_VERSION=1.21.9
+ARG GO_VERSION=1.23.9
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update -y && \
     apt-get install curl gcc -y

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -54,6 +55,12 @@ func Handler(ctx context.Context, event *ObjectStorageEvent) (*ObjectStorageResp
 
 		// Start a new goroutine to handle the object storage operation.
 		go func() {
+			body := bytes.NewBuffer(nil)
+			i, err := io.Copy(body, pipeReader)
+			if err != nil {
+				panic("failed to copy data from pipeReader: " + err.Error())
+			}
+			fmt.Printf("Copied %d bytes to body\n", i)
 			// Attempt to put the object into the bucket.
 			_, err = s3Client.PutObject(ctx, &s3.PutObjectInput{
 				// The name of the bucket to put the object into.
@@ -63,7 +70,7 @@ func Handler(ctx context.Context, event *ObjectStorageEvent) (*ObjectStorageResp
 				Key: aws.String(thumbnailKey),
 
 				// The data to store in the object.
-				Body: pipeReader,
+				Body: body,
 
 				// The MIME type of the object.
 				ContentType: object.ContentType,

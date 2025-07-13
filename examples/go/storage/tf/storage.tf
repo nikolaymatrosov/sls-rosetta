@@ -9,7 +9,9 @@ resource "yandex_storage_bucket" "for-uploads" {
   secret_key = yandex_iam_service_account_static_access_key.sa_storage_editor.secret_key
   bucket     = random_uuid.upload-bucket-name.result
   depends_on = [
-    yandex_iam_service_account.sa_storage_editor
+    yandex_iam_service_account.sa_storage_editor,
+    yandex_iam_service_account_static_access_key.sa_storage_editor,
+    yandex_resourcemanager_folder_iam_binding.sa_storage_editor
   ]
 }
 
@@ -20,6 +22,8 @@ resource "yandex_storage_bucket" "for-deploy" {
   secret_key = yandex_iam_service_account_static_access_key.sa_storage_editor.secret_key
   bucket     = random_uuid.deploy-bucket-name.result
   depends_on = [
-    yandex_iam_service_account.sa_storage_editor
+    yandex_iam_service_account.sa_storage_editor,
+    yandex_iam_service_account_static_access_key.sa_storage_editor,
+    yandex_resourcemanager_folder_iam_binding.sa_storage_editor
   ]
 }
