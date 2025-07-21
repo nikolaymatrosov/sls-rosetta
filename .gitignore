@@ -33,3 +33,5 @@ go.work
 *.tfstate.backup
 
 venv
+
+.tfvars
