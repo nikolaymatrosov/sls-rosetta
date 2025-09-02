@@ -16,12 +16,13 @@ public class Handler : YcFunction<ApiGatewayRequest, Response>
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             }
         );
-
+    
+        string name = data?.Name ?? "World";
 
         string body = JsonSerializer.Serialize(
             new Dictionary<string, string>
             {
-                { "name", data?.Name ?? "world" },
+                { "message", $"Hello, {name}!" },
             });
 
         Console.WriteLine($"Response body: {body}");

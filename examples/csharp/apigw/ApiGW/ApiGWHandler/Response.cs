@@ -1,18 +1,26 @@
+using System.Text.Json.Serialization;
+
 namespace ApiGWHandler;
 
-public class Response
+// We need to provide parameters in lower camel case
+// because Yandex API Gateway expects them in this format
+// Otherwise, you'll this 502 error:
+// {"message":"no statusCode provided by function"}
+public class Response(
+    int statusCode,
+    string body,
+    Dictionary<string, string> headers = null,
+    bool isBase64Encoded = false)
 {
-    public int statusCode { get; set; }
-    public String body { get; set; }
-    public Dictionary<string, string> headers { get; set; }
+    [JsonPropertyName("statusCode")]
+    public int StatusCode { get; set; } = statusCode;
 
-    public bool isBase64Encoded { get; set; }
+    [JsonPropertyName("body")]
+    public string Body { get; set; } = body;
 
-    public Response(int statusCode, String body, Dictionary<string, string> headers = null, bool isBase64Encoded = false)
-    {
-        this.statusCode = statusCode;
-        this.body = body;
-        this.headers = headers;
-        this.isBase64Encoded = isBase64Encoded;
-    }
+    [JsonPropertyName("headers")]
+    public Dictionary<string, string> Headers { get; set; } = headers;
+
+    [JsonPropertyName("isBase64Encoded")]
+    public bool IsBase64Encoded { get; set; } = isBase64Encoded;
 }
