@@ -1,14 +1,13 @@
 {
   "name": "function",
   "version": "1.0.0",
-  "dependencies": {
-  },
+  "dependencies": {},
   "type": "module",
   "scripts": {
     "build": "tsc && cp package*.json ../dist/"
   },
   "devDependencies": {
-    "@types/node": "^20.10.1",
+    "@types/node": "^20.19.24",
     "@yandex-cloud/function-types": "2.1.1",
     "typescript": "5.3.2"
   }

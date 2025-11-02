@@ -1,0 +1,11 @@
+# Environment variables with secrets
+.env
+
+# Build output
+../dist/
+
+# Dependencies
+node_modules/
+
+# TypeScript cache
+*.tsbuildinfo

@@ -1,0 +1,22 @@
+{
+  "name": "yds-typescript-example",
+  "version": "1.0.0",
+  "description": "YDS producer and consumer functions in TypeScript",
+  "type": "module",
+  "main": "producer.js",
+  "scripts": {
+    "build": "tsc && cp package*.json ../dist/",
+    "test:local": "./test-local.sh"
+  },
+  "dependencies": {
+    "@ydbjs/auth": "6.0.4",
+    "@ydbjs/core": "6.0.4",
+    "@ydbjs/topic": "6.0.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.1",
+    "prettier": "3.6.2",
+    "@yandex-cloud/function-types": "2.1.2",
+    "typescript": "5.9.3"
+  }
+}
