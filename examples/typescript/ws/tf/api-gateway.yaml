@@ -1,0 +1,29 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: WebSocket Broadcast API
+paths:
+  /ws:
+    x-yc-apigateway-websocket-connect:
+      operationId: ws-connect
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: ${function_id}
+        tag: "$latest"
+        service_account_id: ${sa_id}
+
+    x-yc-apigateway-websocket-message:
+      operationId: ws-message
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: ${function_id}
+        tag: "$latest"
+        service_account_id: ${sa_id}
+
+    x-yc-apigateway-websocket-disconnect:
+      operationId: ws-disconnect
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: ${function_id}
+        tag: "$latest"
+        service_account_id: ${sa_id}

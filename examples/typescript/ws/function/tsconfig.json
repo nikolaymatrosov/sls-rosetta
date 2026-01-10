@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "lib": ["ES2022"],
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "target": "ES2022",
+    "outDir": "../dist"
+  },
+  "include": [
+    "server/**/*.ts",
+    "shared/**/*.ts",
+    "client/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ],
+  "ts-node": {
+    "esm": true,
+    "experimentalSpecifierResolution": "node"
+  }
+}
