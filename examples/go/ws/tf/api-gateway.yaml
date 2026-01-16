@@ -1,0 +1,22 @@
+openapi: 3.0.0
+info:
+  title: WebSocket Go Example API
+  version: 1.0.0
+
+paths:
+  /ws:
+    x-yc-apigateway-websocket-connect:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: ${function_id}
+        service_account_id: ${sa_id}
+    x-yc-apigateway-websocket-message:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: ${function_id}
+        service_account_id: ${sa_id}
+    x-yc-apigateway-websocket-disconnect:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: ${function_id}
+        service_account_id: ${sa_id}
