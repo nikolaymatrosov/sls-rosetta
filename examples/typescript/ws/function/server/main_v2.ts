@@ -1,6 +1,7 @@
 import { MetadataCredentialsProvider } from "@ydbjs/auth/metadata";
 import { Driver } from "@ydbjs/core";
 import { query } from "@ydbjs/query";
+import { topic } from "@ydbjs/topic";
 import type {
   ConnectEvent,
   MessageEvent,
@@ -17,14 +18,17 @@ import {
   createUserLeftMessage,
   createErrorMessage,
   createAckMessage,
+  parseClientMessage,
 } from "../shared/protocol.js";
 import {
   storeConnection,
-  removeConnection,
   removeConnectionById,
-  getAllConnections,
   getUserIdByConnectionId,
 } from "./database.js";
+
+// YDB Topic configuration for broadcasting
+const BROADCAST_TOPIC = process.env.BROADCAST_TOPIC || "/Root/broadcast-topic";
+const TOPIC_PRODUCER_ID = "websocket-broadcaster";
 
 // Union type for all WebSocket events
 type WebSocketEvent = ConnectEvent | MessageEvent | DisconnectEvent;
@@ -38,72 +42,33 @@ function errorResponse(statusCode: number, error: string): HttpResult {
   return { statusCode, body: JSON.stringify(createErrorMessage(error)) };
 }
 
-// WebSocket Management API endpoint
-const WS_API_ENDPOINT = "https://apigateway-connections.api.cloud.yandex.net";
-
-// Send message to a specific connection via REST API
-async function sendMessage(
-  connectionId: string,
-  message: string,
-  iamToken: string
-): Promise<boolean> {
-  try {
-    const url = `${WS_API_ENDPOINT}/apigateways/websocket/v1/connections/${connectionId}:send`;
-
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${iamToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        data: Buffer.from(message).toString("base64"),
-        type: "TEXT",
-      }),
-    });
-
-    return response.ok;
-  } catch (error) {
-    console.error(`Failed to send to ${connectionId}:`, error);
-    return false;
-  }
-}
-
-// Broadcast message to all connections
-async function broadcastMessage(
-  sql: ReturnType<typeof query>,
-  message: string,
-  iamToken: string,
-  excludeConnectionId?: string
+// Write any server message to YDB Topic for broadcasting via trigger
+async function writeToTopic(
+  driver: Driver,
+  message: ServerMessage
 ): Promise<void> {
-  const connections = await getAllConnections(sql);
-  console.log(
-    `Broadcasting to ${connections.length} connections, excluding: ${excludeConnectionId}`
-  );
-  console.log(`Connections: ${JSON.stringify(connections)}`);
+  const t = topic(driver);
 
-  const filtered = connections.filter(
-    (conn) => conn.connection_id !== excludeConnectionId
-  );
-  console.log(`After filter: ${filtered.length} connections`);
-
-  const sendPromises = filtered.map(async (conn) => {
-    const success = await sendMessage(conn.connection_id, message, iamToken);
-    if (!success) {
-      // Connection might be stale, remove it
-      await removeConnection(sql, conn.user_id);
-    }
+  // Use await using for automatic cleanup
+  await using writer = t.createWriter({
+    topic: BROADCAST_TOPIC,
+    producer: TOPIC_PRODUCER_ID,
   });
 
-  await Promise.all(sendPromises);
+  const messageJson = JSON.stringify(message);
+  writer.write(new TextEncoder().encode(messageJson));
+  await writer.flush();
+
+  console.log(`Written to topic ${BROADCAST_TOPIC}: ${messageJson}`);
 }
 
 // Handle CONNECT event - extract user_id from query params and store
 async function handleConnect(
   event: ConnectEvent,
   context: Context,
-  sql: ReturnType<typeof query>
+  driver: Driver
 ): Promise<HttpResult> {
+  const sql = query(driver);
   const { connectionId, connectedAt } = event.requestContext;
   const userId = event.queryStringParameters?.user_id;
 
@@ -112,16 +77,14 @@ async function handleConnect(
     return errorResponse(400, "Missing user_id query parameter");
   }
 
-  // Broadcast user_joined to existing users before storing new connection
-  const iamToken = context.token?.access_token;
-  if (iamToken) {
-    const joinedMsg = createUserJoinedMessage(userId);
-    await broadcastMessage(sql, JSON.stringify(joinedMsg), iamToken);
-  }
-
   console.log(`User ${userId} connected: ${connectionId}`);
   await storeConnection(sql, userId, connectionId, new Date(connectedAt));
 
+  // Write USER_JOINED message to topic so trigger broadcasts it
+  const joinedMsg = createUserJoinedMessage(userId);
+  await writeToTopic(driver, joinedMsg);
+
+  // Return CONNECTED message directly to the connecting user
   const message = createConnectedMessage(userId);
   return {
     statusCode: 200,
@@ -129,48 +92,13 @@ async function handleConnect(
   };
 }
 
-// Send a protocol message to a connection
-async function sendProtocolMessage(
-  connectionId: string,
-  msg: ServerMessage,
-  iamToken: string
-): Promise<boolean> {
-  return sendMessage(connectionId, JSON.stringify(msg), iamToken);
-}
-
-// Parse and validate client message from JSON string
-function parseClientMessage(body: string): ClientMessage {
-  // Parse JSON
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(body);
-  } catch (error) {
-    throw new Error("Invalid JSON");
-  }
-
-  // Validate that parsed message has a type field
-  if (!parsed || typeof parsed !== "object" || !("type" in parsed)) {
-    throw new Error("Invalid message format");
-  }
-
-  // Validate message type
-  const messageType = (parsed as { type: unknown }).type;
-  if (
-    messageType !== ClientMessageType.SEND &&
-    messageType !== ClientMessageType.DISCONNECT
-  ) {
-    throw new Error("Unknown message type");
-  }
-
-  return parsed as ClientMessage;
-}
-
 // Handle MESSAGE event - dispatch based on protocol message type
 async function handleMessage(
   event: MessageEvent,
   context: Context,
-  sql: ReturnType<typeof query>
+  driver: Driver
 ): Promise<HttpResult> {
+  const sql = query(driver);
   const { connectionId } = event.requestContext;
   const body = event.body || "";
 
@@ -199,10 +127,6 @@ async function handleMessage(
       const senderId = await getUserIdByConnectionId(sql, connectionId);
       if (!senderId) {
         console.error(`Unregistered connection: ${connectionId}`);
-        const errorMsg = createErrorMessage(
-          "Not registered. Send connect message first."
-        );
-        await sendProtocolMessage(connectionId, errorMsg, iamToken);
         return errorResponse(400, "Not registered");
       }
 
@@ -210,15 +134,14 @@ async function handleMessage(
         `Message from ${senderId} (${connectionId}): ${message.message}`
       );
 
+      // Create broadcast message
       const broadcast = createBroadcastMessage(senderId, message.message);
-      await broadcastMessage(
-        sql,
-        JSON.stringify(broadcast),
-        iamToken,
-        connectionId
-      );
 
-      return successResponse("Broadcast sent");
+      // Write to YDB Topic instead of broadcasting directly
+      // The Data Streams trigger will handle actual broadcasting
+      await writeToTopic(driver, broadcast);
+
+      return successResponse("Message sent to topic");
     }
 
     case ClientMessageType.DISCONNECT: {
@@ -233,8 +156,9 @@ async function handleMessage(
 async function handleDisconnect(
   event: DisconnectEvent,
   context: Context,
-  sql: ReturnType<typeof query>
+  driver: Driver
 ): Promise<HttpResult> {
+  const sql = query(driver);
   const { connectionId } = event.requestContext;
 
   // Get userId before removing connection
@@ -244,13 +168,10 @@ async function handleDisconnect(
 
   await removeConnectionById(sql, connectionId);
 
-  // Broadcast user_left to remaining users
+  // Write USER_LEFT message to topic so trigger broadcasts it
   if (userId) {
-    const iamToken = context.token?.access_token;
-    if (iamToken) {
-      const leftMsg = createUserLeftMessage(userId);
-      await broadcastMessage(sql, JSON.stringify(leftMsg), iamToken);
-    }
+    const leftMsg = createUserLeftMessage(userId);
+    await writeToTopic(driver, leftMsg);
   }
 
   return successResponse("Disconnected");
@@ -261,8 +182,6 @@ export const handler = async (
   event: WebSocketEvent,
   context: Context
 ): Promise<HttpResult> => {
-  const eventType = event.requestContext.eventType;
-
   // Create driver inside handler (recommended for serverless)
   const credentialsProvider = new MetadataCredentialsProvider();
   const driver = new Driver(process.env.YDB_CONNECTION_STRING!, {
@@ -272,15 +191,17 @@ export const handler = async (
 
   try {
     await driver.ready();
-    const sql = query(driver);
+
+    // Handle WebSocket events
+    const eventType = event.requestContext.eventType;
 
     switch (eventType) {
       case "CONNECT":
-        return await handleConnect(event as ConnectEvent, context, sql);
+        return await handleConnect(event as ConnectEvent, context, driver);
       case "MESSAGE":
-        return await handleMessage(event as MessageEvent, context, sql);
+        return await handleMessage(event as MessageEvent, context, driver);
       case "DISCONNECT":
-        return await handleDisconnect(event as DisconnectEvent, context, sql);
+        return await handleDisconnect(event as DisconnectEvent, context, driver);
       default:
         console.error(`Unknown event type: ${eventType}`);
         return errorResponse(400, `Unknown event type: ${eventType}`);

@@ -18,9 +18,9 @@ const url = process.argv[2]
 const userId = process.argv[3] || crypto.randomUUID()
 
 if (!url) {
-	console.error('Usage: npx ts-node client.ts <websocket-url> [user-id]')
-	console.error('Example: npx ts-node client.ts wss://xxx.apigw.yandexcloud.net/ws')
-	console.error('Example: npx ts-node client.ts wss://xxx.apigw.yandexcloud.net/ws my-user-123')
+	console.error('Usage: npx ts-node client_v2.ts <websocket-url> [user-id]')
+	console.error('Example: npx ts-node client_v2.ts wss://xxx.apigw.yandexcloud.net/ws')
+	console.error('Example: npx ts-node client_v2.ts wss://xxx.apigw.yandexcloud.net/ws my-user-123')
 	process.exit(1)
 }
 
@@ -39,6 +39,7 @@ function send(msg: ClientMessage): void {
 
 // ANSI color codes
 const green = '\x1b[32m'
+const blue = '\x1b[34m'
 const reset = '\x1b[0m'
 
 // Track pending messages for acknowledgment
@@ -58,29 +59,48 @@ const rl = readline.createInterface({
 // Configure message router with handlers for each message type
 const router = new MessageRouter()
 	.on(isBroadcastMessage, (msg) => {
-		printMessage(`< [${msg.from}]: ${msg.message}`)
+		// In v2, we receive our own messages back via the trigger
+		// Display them differently to distinguish from other users
+		if (msg.from === userId) {
+			// Our own message coming back via broadcast trigger
+			if (pendingMessage !== null && msg.message === pendingMessage) {
+				// This is the echo of the message we just sent
+				// Clear the pending "?" indicator and show green checkmark
+				process.stdout.write(`\r\x1b[K${green}✓${reset} ${msg.message}\n`)
+				pendingMessage = null
+			} else {
+				// Our message from another session/tab (same userId)
+				printMessage(`${blue}< [You (other session)]:${reset} ${msg.message}`)
+			}
+		} else {
+			// Message from another user
+			printMessage(`< [${msg.from}]: ${msg.message}`)
+		}
+		rl.prompt()
 	})
 	.on(isConnectedMessage, (msg) => {
 		printMessage(`* Connected as ${msg.userId}`, process.stderr)
 		rl.prompt();
 	})
 	.on(isUserJoinedMessage, (msg) => {
-		printMessage(`* ${msg.userId} joined`, process.stderr)
+		// Don't show "you joined" for ourselves
+		if (msg.userId !== userId) {
+			printMessage(`* ${msg.userId} joined`, process.stderr)
+		}
 	})
 	.on(isUserLeftMessage, (msg) => {
-		printMessage(`* ${msg.userId} left`, process.stderr)
+		// Don't show "you left" for ourselves (shouldn't happen anyway)
+		if (msg.userId !== userId) {
+			printMessage(`* ${msg.userId} left`, process.stderr)
+		}
 	})
 	.on(isErrorMessage, (msg) => {
 		process.stderr.write(`< Error: ${msg.message}\n`)
 	})
 	.on(isAckMessage, (_msg) => {
-		// When ack received, replace "> " with green "✓ "
-		if (pendingMessage !== null) {
-			// Carriage return, clear line, print checkmark, then newline
-			process.stdout.write(`\r\x1b[K${green}✓${reset} ${pendingMessage}\n`)
-			pendingMessage = null
-			rl.prompt()
-		}
+		// ACK just confirms message was written to topic
+		// We'll show the green checkmark when we receive the broadcast echo
+		// Keep the pending message for now
 	})
 	.onUnknown((msg) => {
 		printMessage(`< ${JSON.stringify(msg)}`)
@@ -92,6 +112,7 @@ const router = new MessageRouter()
 ws.on('open', () => {
 	console.log('Connected!')
 	console.log('Type messages and press Enter to send. Press Ctrl+C to exit.')
+	console.log('Note: Messages are broadcast via Data Streams trigger in { messages: [...] } format')
 	console.log('---')
 
 	rl.on('line', (line) => {
@@ -113,6 +134,10 @@ ws.on('open', () => {
 		ws.close()
 		process.exit(0)
 	})
+
+	setInterval(() => {
+		ws.ping()
+	}, 10000);
 })
 
 ws.on('message', (data, isBinary) => router.handle(data, isBinary))

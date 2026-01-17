@@ -27,3 +27,28 @@ paths:
         function_id: ${function_id}
         tag: "$latest"
         service_account_id: ${sa_id}
+
+  /ws_v2:
+    x-yc-apigateway-websocket-connect:
+      operationId: ws-v2-connect
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: ${function_v2_id}
+        tag: "$latest"
+        service_account_id: ${sa_id}
+
+    x-yc-apigateway-websocket-message:
+      operationId: ws-v2-message
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: ${function_v2_id}
+        tag: "$latest"
+        service_account_id: ${sa_id}
+
+    x-yc-apigateway-websocket-disconnect:
+      operationId: ws-v2-disconnect
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: ${function_v2_id}
+        tag: "$latest"
+        service_account_id: ${sa_id}

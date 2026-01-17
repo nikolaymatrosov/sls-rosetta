@@ -1,4 +1,5 @@
 import type { WebSocket } from 'ws';
+import { isDataStreamsTriggerMessage } from './protocol.js';
 
 // Type definitions
 type TypeGuard<T> = (msg: unknown) => msg is T;
@@ -130,7 +131,7 @@ export class MessageRouter {
    * @example
    * ws.on('message', (data) => router.handle(data));
    */
-  handle(data: WebSocket.Data | string): void {
+  handle(data: WebSocket.Data | string, isBinary: boolean): void {
     const rawData = data.toString();
 
     let parsed: unknown;
@@ -156,10 +157,35 @@ export class MessageRouter {
   /**
    * Dispatch a parsed message to the appropriate handler.
    *
+   * If the message is a DataStreamsTriggerMessage, it unwraps the
+   * messages array and dispatches each individual message separately.
+   *
    * @param msg - Parsed message object
    * @returns true if a handler was found and executed, false otherwise
    */
   private dispatchMessage(msg: unknown): boolean {
+    // Check if this is a Data Streams trigger message
+    if (isDataStreamsTriggerMessage(msg)) {
+      // Unwrap and dispatch each message in the array
+      let handledAny = false;
+      for (const serverMsg of msg.messages) {
+        const handled = this.dispatchSingleMessage(serverMsg);
+        handledAny = handledAny || handled;
+      }
+      return handledAny;
+    }
+
+    // Regular message, dispatch directly
+    return this.dispatchSingleMessage(msg);
+  }
+
+  /**
+   * Dispatch a single message to its handler.
+   *
+   * @param msg - Parsed message object
+   * @returns true if a handler was found and executed, false otherwise
+   */
+  private dispatchSingleMessage(msg: unknown): boolean {
     for (const entry of this.handlers) {
       if (entry.guard(msg)) {
         try {

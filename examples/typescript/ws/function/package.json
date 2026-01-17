@@ -9,7 +9,8 @@
   "dependencies": {
     "@ydbjs/auth": "6.0.5",
     "@ydbjs/core": "6.0.7",
-    "@ydbjs/query": "6.0.7"
+    "@ydbjs/query": "6.0.7",
+    "@ydbjs/topic": "^6.1.0"
   },
   "devDependencies": {
     "@types/node": "^25.0.3",
