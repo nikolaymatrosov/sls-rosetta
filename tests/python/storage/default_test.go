@@ -2,7 +2,6 @@ package storage
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/url"
 	"os"
@@ -15,11 +14,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	smithyendpoints "github.com/aws/smithy-go/endpoints"
 	"github.com/gruntwork-io/terratest/modules/terraform"
+	"github.com/stretchr/testify/assert"
 )
 
-func TestGoStorageExample(t *testing.T) {
+func TestPythonStorageExample(t *testing.T) {
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
-		TerraformDir: "../../../examples/go/storage/tf",
+		TerraformDir: "../../../examples/python/storage/tf",
 		Vars: map[string]interface{}{
 			"cloud_id":  os.Getenv("CLOUD_ID"),
 			"folder_id": os.Getenv("FOLDER_ID"),
@@ -32,10 +32,9 @@ func TestGoStorageExample(t *testing.T) {
 	terraform.InitAndApply(t, terraformOptions)
 
 	ctx := context.Background()
-	bucket := terraform.Output(t, terraformOptions, "bucket")
-	bucketForFunction := terraform.Output(t, terraformOptions, "bucket_for_function")
-	accessKey := terraform.Output(t, terraformOptions, "sa_storage_editor_access_key")
-	secretKey := terraform.Output(t, terraformOptions, "sa_storage_editor_secret_key")
+	bucket := terraform.Output(t, terraformOptions, "bucket_name")
+	accessKey := terraform.Output(t, terraformOptions, "access_key")
+	secretKey := terraform.Output(t, terraformOptions, "secret_key")
 
 	cfg, err := config.LoadDefaultConfig(ctx,
 		config.WithDefaultRegion("ru-central1"),
@@ -60,25 +59,17 @@ func TestGoStorageExample(t *testing.T) {
 			Bucket: aws.String(bucket),
 			Key:    aws.String("thumbnails/star.png"),
 		})
-		_, _ = s3Client.DeleteObject(ctx, &s3.DeleteObjectInput{
-			Bucket: aws.String(bucketForFunction),
-			Key:    aws.String("function.zip"),
-		})
-
+	
 		terraform.Destroy(t, terraformOptions)
 	}()
 
 	// wait for object to be available
-	time.Sleep(30 * time.Second)
+	time.Sleep(5 * time.Second)
 
 	filename := "star.png"
 	// Open the file for use
 	file, err := os.Open(filename)
-	if err != nil {
-		fmt.Println("Got error opening file:")
-		fmt.Println(err)
-		return
-	}
+	assert.NoError(t, err, "Failed to open file %s", filename)
 
 	_, err = s3Client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket:      aws.String(bucket),
@@ -86,32 +77,20 @@ func TestGoStorageExample(t *testing.T) {
 		Body:        file,
 		ContentType: aws.String("image/png"),
 	})
-
-	if err != nil {
-		fmt.Println("Got an error receiving the message:")
-		fmt.Println(err)
-		return
-	}
+	assert.NoError(t, err, "Failed to upload file %s to bucket %s", filename, bucket)
 
 	// wait for object to be available
 	time.Sleep(5 * time.Second)
 
 	_, err = s3Client.GetObject(ctx, &s3.GetObjectInput{
 		Bucket: aws.String(bucket),
-		Key:    aws.String("thumbnail/star.png"),
+		Key:    aws.String("thumbnails/star.png"),
 	})
 
-	if err != nil {
-		fmt.Println("Got an error fetching resized image:")
-		fmt.Println(err)
-		t.Fail()
-		return
-	}
+	assert.NoError(t, err, "Failed to get resized image from bucket %s", bucket)
 }
 
-type resolverV2 struct {
-	// you could inject additional application context here as well
-}
+type resolverV2 struct{}
 
 func (*resolverV2) ResolveEndpoint(ctx context.Context, params s3.EndpointParameters) (
 	smithyendpoints.Endpoint, error,
