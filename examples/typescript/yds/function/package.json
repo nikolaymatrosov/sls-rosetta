@@ -9,13 +9,13 @@
     "test:local": "./test-local.sh"
   },
   "dependencies": {
-    "@ydbjs/auth": "6.0.4",
-    "@ydbjs/core": "6.0.4",
-    "@ydbjs/topic": "6.0.4"
+    "@ydbjs/auth": "6.0.5",
+    "@ydbjs/core": "6.0.7",
+    "@ydbjs/topic": "6.1.0"
   },
   "devDependencies": {
-    "@types/node": "^20.10.1",
-    "prettier": "3.6.2",
+    "@types/node": "^25.0.9",
+    "prettier": "3.8.0",
     "@yandex-cloud/function-types": "2.1.2",
     "typescript": "5.9.3"
   }

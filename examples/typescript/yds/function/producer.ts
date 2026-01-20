@@ -95,13 +95,13 @@ export async function handler(event: Http.Event): Promise<Http.Result> {
       // Write message to topic
       const messageData = JSON.stringify(message);
       console.log(`Writing message: ${messageData}`);
-      const seqNo = writer.write(
+      writer.write(
         new TextEncoder().encode(messageData)
       );
-      console.log(`Message queued with sequence number: ${seqNo}`);
 
       console.log("Flushing writer...");
-      await writer.flush();
+      let lastSeqNo = await writer.flush();
+      console.log(`Message queued with sequence number: ${lastSeqNo}`);
       console.log("Writer flushed successfully");
 
       console.log(`Message sent to YDS topic: ${JSON.stringify(message)}`);
@@ -113,7 +113,7 @@ export async function handler(event: Http.Event): Promise<Http.Result> {
           status: "success",
           message: "Message sent to YDS topic",
           data: message,
-          sequenceNumber: seqNo.toString(),
+          sequenceNumber: lastSeqNo?.toString(),
         }),
       };
     } catch (writeError) {

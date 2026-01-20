@@ -43,48 +43,32 @@ export const handler: Handler.DataStreams = async (event, context) => {
                 // Debug: Log the message structure
                 console.log(`Message structure: ${JSON.stringify(msg, null, 2)}`);
 
-                // Extract message data
-                const details = msg.details;
-                const messageData = details?.message;
-                const dataEncoded = messageData?.data;
+                // Extract fields
+                const userId = msg.user_id;
+                const action = msg.action;
+                const message = msg.message;
+                const timestamp = msg.timestamp;
 
-                console.log(`Data encoded: ${dataEncoded}`);
+                console.log(`Processing message: user=${userId}, action=${action}, message=${message}`);
 
-                // Decode base64 data
-                if (dataEncoded) {
-                    const dataDecoded = Buffer.from(dataEncoded, 'base64').toString('utf-8');
-                    console.log(`Data decoded: ${dataDecoded}`);
-                    const dataJson = JSON.parse(dataDecoded);
-
-                    // Extract fields
-                    const userId = dataJson.user_id;
-                    const action = dataJson.action;
-                    const message = dataJson.message;
-                    const timestamp = dataJson.timestamp;
-
-                    console.log(`Processing message: user=${userId}, action=${action}, message=${message}`);
-
-                    // Group actions by user
-                    if (!userActions[userId]) {
-                        userActions[userId] = [];
-                    }
-                    userActions[userId].push({
-                        action,
-                        message,
-                        timestamp
-                    });
-
-                    // Process based on action type
-                    processAction(userId, action, message, timestamp);
-
-                    processedMessages.push({
-                        user_id: userId,
-                        action,
-                        status: 'processed'
-                    });
-                } else {
-                    console.log(`No data found in message - dataEncoded is: ${dataEncoded}`);
+                // Group actions by user
+                if (!userActions[userId]) {
+                    userActions[userId] = [];
                 }
+                userActions[userId].push({
+                    action,
+                    message,
+                    timestamp
+                });
+
+                // Process based on action type
+                processAction(userId, action, message, timestamp);
+
+                processedMessages.push({
+                    user_id: userId,
+                    action,
+                    status: 'processed'
+                });
             } catch (error) {
                 console.error('Error processing individual message:', error);
                 console.error('Error stack:', error instanceof Error ? error.stack : String(error));
