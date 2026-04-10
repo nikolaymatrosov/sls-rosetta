@@ -1,0 +1,24 @@
+{
+  "name": "otel-example",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "rm -rf ../dist && tsc && cp package*.json ../dist/",
+    "client": "npx tsx --env-file=.env client.js"
+  },
+  "dependencies": {
+    "@grpc/grpc-js": "^1.12.0",
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/core": "^1.30.0",
+    "@opentelemetry/sdk-node": "^0.57.0",
+    "@opentelemetry/sdk-trace-node": "^1.30.0",
+    "@opentelemetry/exporter-trace-otlp-grpc": "^0.57.0",
+    "@opentelemetry/resources": "^1.30.0",
+    "@opentelemetry/semantic-conventions": "^1.28.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.8.1",
+    "@yandex-cloud/function-types": "2.1.2",
+    "typescript": "5.9.3",
+    "tsx": "4.21.0"
+  }
+}
