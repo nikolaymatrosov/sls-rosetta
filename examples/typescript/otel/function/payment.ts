@@ -1,6 +1,6 @@
 import { withTracing } from './tracing';
 
-export const handler = withTracing('payment-service', async (_tracer, span) => {
+export const handler = withTracing(async (span) => {
     // Simulate some work
     await new Promise((resolve) => setTimeout(resolve, 50));
     span.addEvent('processing-complete');

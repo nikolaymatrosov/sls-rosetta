@@ -1,17 +1,16 @@
-import { initTracing, shutdownTracing, propagation, context as otelContext, SpanStatusCode, SpanKind } from './tracing';
+import { getTracer, flushTracing, propagation, context as otelContext, SpanStatusCode, SpanKind } from './tracing';
 
-const callerUrl = process.env.CALLER_URL || '';
-const folderId = process.env.FOLDER_ID || '';
+const orderUrl = process.env.ORDER_URL || '';
 
 async function main() {
-    const tracer = initTracing('order-client', folderId);
+    const tracer = getTracer();
 
-    await tracer.startActiveSpan('call-caller-function', { kind: SpanKind.CLIENT }, async (span) => {
+    await tracer.startActiveSpan('call-order-function', { kind: SpanKind.CLIENT }, async (span) => {
         try {
             const headers: Record<string, string> = {};
             propagation.inject(otelContext.active(), headers);
 
-            const response = await fetch(callerUrl, { method: 'GET', headers });
+            const response = await fetch(orderUrl, { method: 'GET', headers });
             const body = await response.text();
 
             span.setAttribute('http.status_code', response.status);
@@ -26,7 +25,7 @@ async function main() {
         }
     });
 
-    await shutdownTracing();
+    await flushTracing();
 }
 
 main().catch((err) => {
