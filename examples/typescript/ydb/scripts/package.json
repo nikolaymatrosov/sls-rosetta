@@ -1,0 +1,23 @@
+{
+  "name": "ydb-seed",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "seed": "tsx --env-file=.env seed.ts",
+    "seed:blobs": "tsx --env-file=.env seed_blobs.ts"
+  },
+  "dependencies": {
+    "@faker-js/faker": "^10.4.0",
+    "@ydbjs/api": "^6.0.6",
+    "@ydbjs/auth": "^6.2.1",
+    "@ydbjs/core": "^6.1.0",
+    "@ydbjs/query": "^6.0.7",
+    "@ydbjs/value": "^6.0.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.17",
+    "tsx": "^4.21.0",
+    "typescript": "5.9.3"
+  }
+}

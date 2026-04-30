@@ -1,0 +1,21 @@
+{
+  "name": "ydb-typescript-example",
+  "version": "1.0.0",
+  "description": "YDB query with transaction statistics in TypeScript",
+  "type": "module",
+  "main": "main.js",
+  "scripts": {
+    "build": "tsc && cp package*.json ../dist/"
+  },
+  "dependencies": {
+    "@ydbjs/api": "^6.0.0",
+    "@ydbjs/auth": "^6.0.0",
+    "@ydbjs/core": "^6.0.0",
+    "@ydbjs/query": "^6.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@yandex-cloud/function-types": "2.1.2",
+    "typescript": "5.9.3"
+  }
+}
